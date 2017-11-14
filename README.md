@@ -3,4 +3,7 @@ Because I was bored I made this simple neural model based on the izhikevich pape
 
 Example:
 
-![sample](example.png)
+![sample](exampleIz.png)
+
+# Ising model
+![sampleIsing](exampleIsing.png)
