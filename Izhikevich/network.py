@@ -1,35 +1,24 @@
-
-from pip import main
-with open('requirements.txt', 'r') as f:
-    for line in f:
-        print(line)
-        main(('install ' + line).split(' '))
 import networkx
 from pylab import *
 from numpy import *
 from izhikevich import Izikevich
-n = 100
-k = 30
-p = .6
-
-G = networkx.random_graphs.connected_watts_strogatz_graph(n, k, p)
-fig, ax = subplots()
-networkx.draw(G, pos = networkx.draw_circular(G))
-print(G.edges())
-show()
 
 # %%
 # - make graph
 # - for every node in the graph make a neural object with random values
 # - simulate and record the spikes
 
-def createVertices(G, v = -70, u = -65, a = .02, b = .2, c = -65, d = 2):
+def createVertices(G, v = -70, u = -65, a = .02, b = .2, c = -65, d = 2, state = 1):
     vertices = {}
     for node in G.nodes():
-        v = random.rand() * -70 + 50
+        v = (random.rand() * 70  - 20)*-1
         u = random.rand() * -65 + 15
         d = random.rand() * 2
-        vertices[node] = Izikevich(v, u, a, b, c, d)
+        if random.rand() > .9:
+            state = -1
+        else:
+            state = 1
+        vertices[node] = Izikevich(v, u, a, b, c, d, type = state)
     return vertices
 # %%
 
@@ -48,19 +37,33 @@ def simulate(G, vertices, nSteps = 1000, dt = .5):
             for neighbor in neighbors:
                 neighborCurrent += int(vertices[node].spiked)
             # add random noise + external current
-            state = vertices[node].updateState(neighborCurrent + random.rand() * 15)
+            state = vertices[node].updateState(neighborCurrent + random.randn()*15)
             # print(state)
             nextState.append(state)
         states.append(nextState)
     return states
 
+
+n = 500
+m = 1
+k = 5
+p = .9
+
+G = networkx.random_graphs.connected_watts_strogatz_graph(n, k, p)
+# G = networkx.complete_graph(200)
+# G  = networkx.random_graphs.erdos_renyi_graph(n,m)
+fig, ax = subplots()
+networkx.draw(G) #, pos = networkx.draw_circular(G))
+# print(G.edges())
+
 vertices = createVertices(G)
 r = array(simulate(G, vertices))
 cfg = {'xlabel' : 'time[ms]', 'ylabel' : 'neuron [spike]'}
 fig, ax = subplots();
-ax.imshow(r[...,-1].T, aspect ='auto', cmap = 'gray_r')
+h = ax.imshow(r[...,-1].T, aspect ='auto')
 setp(ax, **cfg)
 savefig('example.png')
-fig, ax = subplots()
-ax.plot(r[...,0])
+colorbar(h)
+# fig, ax = subplots()
+# ax.plot(r[...,0])
 show()

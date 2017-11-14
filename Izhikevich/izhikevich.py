@@ -1,8 +1,9 @@
 from pylab import *
 from numpy import *
+# TODO: the update rule does not work as intended; i.e. the voltage can be higher than the threshold
 
 class Izikevich:
-    def __init__(self, v, u, a, b, c, d, dt = 1, threshold = 30):
+    def __init__(self, v, u, a, b, c, d, dt = 1, threshold = 30, type = 1):
         # assign everything to class attributes
         [setattr(self, key, value) for key, value in locals().items() if key != 'self']
         self.spiked = 0
@@ -11,17 +12,18 @@ class Izikevich:
         if self.v >= self.threshold:
             self.v = self.c
             self.u += self.d
-            self.spiked = 1 # output to other neurons
+            self.spiked = 1 * self.type # output to other neurons
         else:
             dv = (.04 * self.v +  5 )* self.v + 140 - self.u + I
             du = self.a * (self.b * self.v - self.u)
             self.v += dv * self.dt
             self.u += du * self.dt
             self.spiked = 0
-            if self.v >= self.threshold:
-                self.v = self.c
-                self.u += self.d
-                self.spiked = 1 # output to other neurons
+
+        if self.v >= self.threshold:
+            self.v = self.c
+            self.u += self.d
+            self.spiked = 1 * self.type # output to other neurons
 
         return [self.v, self.u, self.spiked]
 
@@ -35,9 +37,9 @@ if __name__ == '__main__':
     u = b * v
 
     nSteps = 1000
-    dt     = .1
+    dt     = .5
     time   = arange(0, nSteps, dt)
-    I      =  random.randn(len(time)) * 35
+    I      =  random.randn(len(time)) * 15
     neuron = Izikevich(v, u, a, b, c, d, dt)
     uv     = array([neuron.updateState(i) for i in I])
     fig, ax = subplots()
